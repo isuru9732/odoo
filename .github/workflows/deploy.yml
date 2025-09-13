@@ -30,8 +30,8 @@ jobs:
     - name: Build Docker image
       run: |
         docker build -t odoo:latest .
-        docker tag odoo:latest public.ecr.aws/abc123/odoo-ecs:latest
-        docker push public.ecr.aws/abc123/odoo-ecs:latest
+        docker tag odoo:latest public.ecr.aws/w8u6m5x9/odoo-ecs:latest
+        docker push public.ecr.aws/w8u6m5x9/odoo-ecs:latest
 
     # Step 5: Update ECS service
     - name: Deploy to ECS
