@@ -10,5 +10,5 @@ COPY ./custom_addons /mnt/extra-addons
 # Ensure correct ownership
 RUN chown -R odoo:odoo /mnt/extra-addons
 
-# Switch back to Odoo user
+# Switch back to Odoo users
 USER odoo
