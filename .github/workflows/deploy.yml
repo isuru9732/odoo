@@ -12,24 +12,42 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Configure AWS Credentials
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Login to Amazon ECR
+          aws-region: us-east-1   # Public ECR login ONLY works in us-east-1
+      
+      - name: Login to Amazon ECR Public
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build Docker image
+        with:
+          registry-type: public
+      
+      - name: Build, tag, and push image
         run: |
-          docker build -t odoo .
-          docker tag odoo:latest ${{ secrets.ECR_REPOSITORY_URI }}:latest
+          docker build -t public.ecr.aws/w8u6m5x9/odoo-ecr:latest .
+          docker push public.ecr.aws/w8u6m5x9/odoo-ecr:latest
 
-      - name: Push to ECR
-        run: |
-          docker push ${{ secrets.ECR_REPOSITORY_URI }}:latest
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
+
+      # - name: Login to Amazon ECR
+      #   uses: aws-actions/amazon-ecr-login@v2
+
+      # - name: Build Docker image
+      #   run: |
+      #     docker build -t odoo .
+      #     docker tag odoo:latest ${{ secrets.ECR_REPOSITORY_URI }}:latest
+
+      # - name: Push to ECR
+      #   run: |
+      #     docker push ${{ secrets.ECR_REPOSITORY_URI }}:latest
 
       - name: Update ECS service
         run: |
