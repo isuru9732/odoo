@@ -1,4 +1,4 @@
-name: Odoo ECS Deploy
+name: Deploy to ECS
 
 on:
   push:
@@ -6,36 +6,34 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    # Step 1: Checkout repo
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    # Step 2: Configure AWS credentials
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: arn:aws:iam::354326796901:role/odoo-user
-        aws-region: ap-southeast-1   # Singapore region
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
-    # Step 3: Login to ECR Public
-    - name: Login to Amazon ECR Public
-      uses: aws-actions/amazon-ecr-login@v2
+      - name: Build Docker image
+        run: |
+          docker build -t odoo .
+          docker tag odoo:latest ${{ secrets.ECR_REPOSITORY_URI }}:latest
 
-    # Step 4: Build and push Docker image
-    - name: Build Docker image
-      run: |
-        docker build -t odoo:latest .
-        docker tag odoo:latest public.ecr.aws/w8u6m5x9/odoo-ecs:latest
-        docker push public.ecr.aws/w8u6m5x9/odoo-ecs:latest
+      - name: Push to ECR
+        run: |
+          docker push ${{ secrets.ECR_REPOSITORY_URI }}:latest
 
-    # Step 5: Update ECS service
-    - name: Deploy to ECS
-      run: |
-        aws ecs update-service \
-          --cluster odoo-cluster \
-          --service odoo-service \
-          --force-new-deployment
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service ${{ secrets.ECS_SERVICE }} \
+            --force-new-deployment
