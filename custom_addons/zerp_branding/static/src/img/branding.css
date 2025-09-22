@@ -1,0 +1,4 @@
+.o_main_navbar .o_menu_brand img {
+    content: url('/zerp_branding/static/src/img/zerp-logo.png');
+    height: 32px !important;
+}
